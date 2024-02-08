@@ -65,10 +65,10 @@ const TodoList: React.FC = () => {
       <div>
         <ul>
           {todos.map((todo) => (
-            <div className="container-sm bg-slate-500">
-              <li key={todo.id}>
+            <div  key={todo.id} className="container-sm bg-slate-500">
+              <li>
                 <input type="checkbox" />
-                <span>{todo.todo}</span>
+                <span >{todo.todo}</span>
               </li>
             </div>
           ))}
