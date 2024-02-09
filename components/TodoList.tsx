@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { time } from "console";
+
 
 // Make a request for a user with a given ID
 // axios.get('https://dummyjson.com/todos')
@@ -32,24 +31,43 @@ interface Todo {
 }
 
 const TodoList: React.FC = () => {
-  const [newTodoText, setNewTodoText] = useState("");
-  const [todos, settodos] = useState<Todo[]>([]);
+  const [newTodoText, setNewTodoText] = useState('');
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [editTodoId, setEditTodoId] = useState<number | null>(null);
+  const [editTodoText, setEditTodoText] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTodoText(e.target.value);
   };
 
   const handleAddTodo = () => {
-    if (newTodoText !== "") {
+    if (newTodoText.trim() !== '') {
       const newTodo: Todo = {
         id: Date.now(),
         todo: newTodoText,
         completed: false,
         userId: Date.now(),
       };
-      settodos((prevTodos) => [...prevTodos, newTodo]);
-      setNewTodoText("");
+      setTodos(prevTodos => [...prevTodos, newTodo]);
+      setNewTodoText('');
     }
+  };
+
+  const handleEditClick = (id: number, text: string) => {
+    setEditTodoId(id);
+    setEditTodoText(text);
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditTodoText(e.target.value);
+  };
+
+  const handleUpdateTodo = (id: number) => {
+    const updatedTodos = todos.map(todo =>
+      todo.id === id ? { ...todo, todo: editTodoText } : todo
+    );
+    setTodos(updatedTodos);
+    setEditTodoId(null);
   };
 
   return (
@@ -64,11 +82,26 @@ const TodoList: React.FC = () => {
       <button onClick={handleAddTodo}>Add</button>
       <div>
         <ul>
-          {todos.map((todo) => (
-            <div  key={todo.id} className="container-sm bg-slate-500">
+          {todos.map(todo => (
+            <div key={todo.id} className="container-sm bg-slate-500">
               <li>
                 <input type="checkbox" />
-                <span >{todo.todo}</span>
+                {editTodoId === todo.id ? (
+                  <>
+                    <input
+                    className="text-black"
+                      type="text"
+                      value={editTodoText}
+                      onChange={handleEditChange}
+                    />
+                    <button onClick={() => handleUpdateTodo(todo.id)}>Save</button>
+                  </>
+                ) : (
+                  <>
+                    <span>{todo.todo}</span>
+                    <button onClick={() => handleEditClick(todo.id, todo.todo)}>Edit</button>
+                  </>
+                )}
               </li>
             </div>
           ))}
