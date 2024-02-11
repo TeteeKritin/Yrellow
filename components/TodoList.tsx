@@ -1,6 +1,12 @@
-import { time } from "console";
-import { todo } from "node:test";
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  BsArrowDownSquare,
+  BsArrowDownUp,
+  BsArrowUpSquare,
+  BsPencilSquare,
+  BsTrash,
+} from "react-icons/bs";
 
 interface Todo {
   id: number;
@@ -14,6 +20,33 @@ const TodoList: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
   const [editTodoText, setEditTodoText] = useState<string>("");
+
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
+  useEffect(() => {
+    const storedTodos = localStorage.getItem("todos");
+    if (storedTodos) {
+      setTodos(JSON.parse(storedTodos));
+    }
+  }, []);
+
+  // if (typeof localStorage !== 'undefined') {
+  //   console.log('Local storage is supported.');
+  // } else {
+  //   console.log('Local storage is not supported.');
+  // }
+  
+
+
+
+  async function fetchAPI() {
+    const res = await fetch("https://dummyjson.com/todos");
+    const data = await res.json();
+    return data;
+  }
 
   const handleInputChange = (text: React.ChangeEvent<HTMLInputElement>) => {
     setNewTodoText(text.target.value);
@@ -61,51 +94,137 @@ const TodoList: React.FC = () => {
     setTodos(updatedTodo);
   };
 
+  const handleMoveTodoUp = (id: number) => {
+    const index = todos.findIndex((todo) => todo.id === id);
+    if (index > 0) {
+      const updatedTodos = [...todos];
+      const temp = updatedTodos[index];
+      updatedTodos[index] = updatedTodos[index - 1];
+      updatedTodos[index - 1] = temp;
+      setTodos(updatedTodos);
+    }
+  };
+
+  const handleMoveTodoDown = (id: number) => {
+    const index = todos.findIndex((todo) => todo.id === id);
+    if (index < todos.length - 1) {
+      const updatedTodos = [...todos];
+      const temp = updatedTodos[index];
+      updatedTodos[index] = updatedTodos[index + 1];
+      updatedTodos[index + 1] = temp;
+      setTodos(updatedTodos);
+    }
+  };
+
+  const handleRandomClick = async () => {
+    const data = await fetchAPI();
+
+    const randomIndex = Math.floor(Math.random() * data.todos.length);
+    const randomTodo = data.todos[randomIndex];
+
+    const newTodo: Todo = {
+      id: Date.now(),
+      text: randomTodo.todo,
+      completed: false,
+      userId: randomTodo.userId,
+    };
+
+    setTodos((prevTodos) => [...prevTodos, newTodo]);
+  };
+
   const completedTodoCount = todos.filter((todo) => todo.completed).length;
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <input
         type="text"
         value={newTodoText}
         onChange={handleInputChange}
         placeholder="Input your todo"
+        className="rounded-2xl placeholder-center text-center h-10 w-30 border border-black"
       ></input>
-      <button className="text-white" onClick={handleTodoAdd}>
-        Add
-      </button>
-      <h1 className="text-white">
-        {}{completedTodoCount} /{todos.length}
+      <div>
+        <button
+          className="text-black bg-yellow-400 p-3 my-4 rounded-full w-52"
+          onClick={handleTodoAdd}
+        >
+          Add
+        </button>
+        <button
+          onClick={handleRandomClick}
+          className="text-black bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 p-3 my-4 rounded-full w-52 ml-4"
+        >
+          Magic Button
+        </button>
+      </div>
+
+      <h1 className="text-white mb-4">
+        {}
+        {completedTodoCount} / {todos.length} Completed
       </h1>
-      <ul>
+      <h1></h1>
+      <ul className="">
         {todos.map((todo) => (
-          <div key={todo.id}>
-            <li className="text-white">
+          <div key={todo.id} className="flex flex-col">
+            <li className="bg-yellow-400 text-black rounded-xl w-[500px] py-8 px-24 mb-4 items-center min-w-80 drop-shadow-xl self-center">
               {editTodoId === todo.id ? (
-                <>
+                <div className="flex flex-col">
                   <input
-                    className="text-black"
+                    className="text-black rounded-xl mb-4 text-center py-3 text-xl"
                     type="text"
                     value={editTodoText}
                     onChange={handleEditChange}
                   ></input>
-                  <button onClick={() => todoUpdater(todo.id)}>Save</button>
-                </>
+                  <button
+                    className="bg-green-400 w-fit self-center text-white py-2 px-4 rounded-xl"
+                    onClick={() => todoUpdater(todo.id)}
+                  >
+                    Save
+                  </button>
+                </div>
               ) : (
-                <>
-                  <span>{todo.text}</span>
-                  <button onClick={() => handleEditClick(todo.id, todo.text)}>
-                    Edit
-                  </button>
-                  <button onClick={() => handleDeleteTodo(todo.id)}>
-                    Delete
-                  </button>
+                <div className="flex flex-col items-center">
+                  <div className="flex flex-col absolute left-4 top-2">
+                    <button
+                      className="mb-1"
+                      onClick={() => {
+                        handleMoveTodoUp(todo.id);
+                      }}
+                    >
+                      <BsArrowUpSquare />
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleMoveTodoDown(todo.id);
+                      }}
+                    >
+                      <BsArrowDownSquare />
+                    </button>
+                  </div>
+
+                  <h1 className="text-2xl">{todo.text}</h1>
                   <input
+                    className=" absolute top-2 right-3 size-6"
                     type="checkbox"
                     checked={todo.completed}
                     onChange={() => handleCheckBox(todo.id)}
                   ></input>
-                </>
+
+                  <div className="flex">
+                    <button
+                      className=" absolute left-4 bottom-2"
+                      onClick={() => handleEditClick(todo.id, todo.text)}
+                    >
+                      <BsPencilSquare />
+                    </button>
+                    <button
+                      className="absolute right-4 bottom-2"
+                      onClick={() => handleDeleteTodo(todo.id)}
+                    >
+                      <BsTrash color="red" />
+                    </button>
+                  </div>
+                </div>
               )}
             </li>
           </div>
