@@ -4,6 +4,8 @@ import {
   BsArrowDownSquare,
   BsArrowDownUp,
   BsArrowUpSquare,
+  BsBoxArrowDown,
+  BsBoxArrowUp,
   BsPencilSquare,
   BsTrash,
 } from "react-icons/bs";
@@ -21,27 +23,6 @@ const TodoList: React.FC = () => {
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
   const [editTodoText, setEditTodoText] = useState<string>("");
 
-
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
-
-  useEffect(() => {
-    const storedTodos = localStorage.getItem("todos");
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
-    }
-  }, []);
-
-  // if (typeof localStorage !== 'undefined') {
-  //   console.log('Local storage is supported.');
-  // } else {
-  //   console.log('Local storage is not supported.');
-  // }
-  
-
-
-
   async function fetchAPI() {
     const res = await fetch("https://dummyjson.com/todos");
     const data = await res.json();
@@ -55,7 +36,7 @@ const TodoList: React.FC = () => {
   const handleTodoAdd = () => {
     if (newTodoText !== "") {
       const newTodo: Todo = {
-        id: Date.now(),
+        id: todos.length + 1,
         text: newTodoText,
         completed: false,
         userId: Date.now(),
@@ -132,17 +113,62 @@ const TodoList: React.FC = () => {
     setTodos((prevTodos) => [...prevTodos, newTodo]);
   };
 
+  const handleExportClick = () => {
+    const json = JSON.stringify(todos);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "todos.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const newTodos = JSON.parse(content) as Todo[];
+        setTodos(newTodos);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const completedTodoCount = todos.filter((todo) => todo.completed).length;
 
   return (
-    <div className="flex flex-col items-center">
-      <input
-        type="text"
-        value={newTodoText}
-        onChange={handleInputChange}
-        placeholder="Input your todo"
-        className="rounded-2xl placeholder-center text-center h-10 w-30 border border-black"
-      ></input>
+    <div className="flex flex-col items-center content-center ">
+      <div className="flex flex-row justify-center">
+        <input
+          type="text"
+          value={newTodoText}
+          onChange={handleInputChange}
+          placeholder="Input your todo"
+          className="rounded-2xl placeholder-center text-center h-10 w-30 border border-black mt-1"
+        ></input>
+        <button
+          className="bg-blue-500 p-4 mx-2 rounded-md"
+          onClick={handleExportClick}
+        >
+          <BsBoxArrowUp />
+        </button>
+        <input
+          type="file"
+          accept=".json"
+          onChange={handleImportClick}
+          className="hidden"
+          id="fileInput"
+        ></input>
+        <label
+          htmlFor="fileInput"
+          className=" cursor-pointer bg-gray-300 p-4 rounded-md"
+        >
+          <BsBoxArrowDown />
+        </label>
+      </div>
       <div>
         <button
           className="text-black bg-yellow-400 p-3 my-4 rounded-full w-52"
@@ -157,6 +183,7 @@ const TodoList: React.FC = () => {
           Magic Button
         </button>
       </div>
+      <div className="flex items-center"></div>
 
       <h1 className="text-white mb-4">
         {}
