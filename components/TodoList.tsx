@@ -15,13 +15,16 @@ interface Todo {
   text: string;
   completed: boolean;
   userId: number;
+  // imageUrl: string;
 }
 
+/*Test*/
 const TodoList: React.FC = () => {
   const [newTodoText, setNewTodoText] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
   const [editTodoText, setEditTodoText] = useState<string>("");
+  // const [imageUrl, setImageUrl] = useState("");
 
   async function fetchAPI() {
     const res = await fetch("https://dummyjson.com/todos");
@@ -40,6 +43,7 @@ const TodoList: React.FC = () => {
         text: newTodoText,
         completed: false,
         userId: Date.now(),
+        // imageUrl: "",
       };
       setTodos((prevTodos) => [...prevTodos, newTodo]);
       setNewTodoText("");
@@ -108,6 +112,7 @@ const TodoList: React.FC = () => {
       text: randomTodo.todo,
       completed: false,
       userId: randomTodo.userId,
+      // imageUrl: "",
     };
 
     setTodos((prevTodos) => [...prevTodos, newTodo]);
@@ -136,6 +141,22 @@ const TodoList: React.FC = () => {
       reader.readAsText(file);
     }
   };
+
+  // const handleFileChange = (id: number, file: File | undefined) => {
+  //   if (file) {
+  //     // Use FileReader to read the file as data URL
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       const imageUrl = reader.result as string;
+  //       // Update the todo item with the new image URL
+  //       const updatedTodos = todos.map((todo) =>
+  //         todo.id === id ? { ...todo, imageUrl: imageUrl } : todo
+  //       );
+  //       setTodos(updatedTodos);
+  //     };
+  //     reader.readAsDataURL(file); // Read the file as a data URL
+  //   }
+  // };
 
   const completedTodoCount = todos.filter((todo) => todo.completed).length;
 
@@ -169,6 +190,7 @@ const TodoList: React.FC = () => {
           <BsBoxArrowDown />
         </label>
       </div>
+      {/* <input type="file" onChange={(e) => setImageUrl(e.target.value)}></input> */}
       <div>
         <button
           className="text-black bg-yellow-400 p-3 my-4 rounded-full w-52"
@@ -229,6 +251,14 @@ const TodoList: React.FC = () => {
                     </button>
                   </div>
 
+                  {/* <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleFileChange(todo.id, e.target.files?.[0])
+                    }
+                    className="border"
+                  /> */}
                   <h1 className="text-2xl">{todo.text}</h1>
                   <input
                     className=" absolute top-2 right-3 size-6"
